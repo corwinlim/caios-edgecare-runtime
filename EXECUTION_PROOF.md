@@ -20,39 +20,47 @@ A real Qualcomm Device Cloud Interactive Session has been created and connected 
 
 This proves that CAIOS successfully acquired, started, and connected to a real Qualcomm-hosted Snapdragon X2 Elite device session.
 
-## Workload execution — current verification gate
+## GenieX binary verification
 
-The connected Windows session was checked from PowerShell. `geniex --help`, `geniex pull ...`, and `geniex serve` all returned `CommandNotFoundException`, confirming that GenieX is **not preinstalled** on this QDC Windows image.
-
-Therefore the next gate is installation of the official GenieX Windows ARM64 CLI, followed by a local on-device inference run.
-
-Official GenieX documentation states that the Windows ARM64 CLI supports Snapdragon X-series devices, including Snapdragon X Elite / X2 Elite.
-
-After installation, verify:
-
-```powershell
-geniex --help
-```
-
-Then pull and serve a model:
-
-```powershell
-geniex pull ai-hub-models/Qwen3-4B-Instruct-2507
-geniex serve
-```
-
-The GenieX server exposes an OpenAI-compatible endpoint at:
+The official GenieX CLI was installed to:
 
 ```text
-http://127.0.0.1:18181
+C:\Users\Asus\AppData\Local\GenieX CLI\geniex.exe
 ```
 
-Then execute the CAIOS EdgeCare request against the local server and capture:
+Verification captured from PowerShell:
 
-- Local provider / model name
-- Successful response
-- Any visible latency / throughput / runtime information
-- Screenshot showing the Qualcomm Device Cloud session and successful workload
+- File size: `33,963,008` bytes
+- Windows PE header begins with `4D 5A` (`MZ`)
+- PE machine type: `0xAA64` = **ARM64**
+
+This rules out an x64/x86 binary mismatch. Despite the ARM64 PE architecture, attempting to run the binary on the current QDC Windows image returns:
+
+```text
+The specified executable is not a valid application for this OS platform.
+```
+
+At this point the remaining issue is most likely either the remote Windows OS architecture / image compatibility, or a GenieX build compatibility issue with this QDC Windows image.
+
+## Next diagnostic gate
+
+Run these exact commands in PowerShell:
+
+```powershell
+$env:PROCESSOR_ARCHITECTURE
+[System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+```
+
+Expected for native Windows ARM64:
+
+```text
+ARM64
+Arm64
+```
+
+If the OS reports `AMD64` / `X64`, then the ARM64 GenieX binary cannot run even though the underlying Qualcomm hardware is Snapdragon X2 Elite.
+
+If the OS reports `Arm64`, then this becomes a GenieX/QDC-image compatibility issue rather than a CPU architecture mismatch.
 
 ## Vendor reference only — not our execution
 
