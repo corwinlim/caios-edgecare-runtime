@@ -4,7 +4,7 @@ This file separates **vendor-published reference performance** from **our own ex
 
 ## CAIOS Device Cloud session — real Qualcomm hardware
 
-A real Qualcomm Device Cloud Interactive Session has been created for the CAIOS EdgeCare submission.
+A real Qualcomm Device Cloud Interactive Session has been created and connected for the CAIOS EdgeCare submission.
 
 - Project / session name: `CAIOS EdgeCare`
 - QDC interactive session / report ID: `822588`
@@ -13,20 +13,30 @@ A real Qualcomm Device Cloud Interactive Session has been created for the CAIOS 
 - Device class: `Compute Reference Design`
 - Platform identifier shown by QDC: `SC8480X`
 - Operating system: `Windows 11`
-- QDC state captured: `Setup`
-- QDC UI confirmation captured: `Successfully started device streaming`
+- QDC state captured after connection: `Running`
+- QDC device streaming: connected and interactive desktop visible
 - Submitted: `09/15/26 03:35:26 AM` (as displayed by QDC)
+- Started: `09/15/26 03:38:05 AM` (as displayed by QDC)
 
-This proves that CAIOS successfully acquired and started a real Qualcomm-hosted Snapdragon X2 Elite device session. It is **hardware-session proof**, not yet a claim that the EdgeCare inference workload completed successfully.
+This proves that CAIOS successfully acquired, started, and connected to a real Qualcomm-hosted Snapdragon X2 Elite device session.
 
-## Workload execution — next verification gate
+## Workload execution — current verification gate
 
-Inside the connected Snapdragon X2 Elite Windows ARM64 session, run GenieX and capture the result.
+The connected Windows session was checked from PowerShell. `geniex --help`, `geniex pull ...`, and `geniex serve` all returned `CommandNotFoundException`, confirming that GenieX is **not preinstalled** on this QDC Windows image.
 
-Official GenieX supports Windows ARM64 on Snapdragon X-series devices. Recommended path:
+Therefore the next gate is installation of the official GenieX Windows ARM64 CLI, followed by a local on-device inference run.
+
+Official GenieX documentation states that the Windows ARM64 CLI supports Snapdragon X-series devices, including Snapdragon X Elite / X2 Elite.
+
+After installation, verify:
 
 ```powershell
 geniex --help
+```
+
+Then pull and serve a model:
+
+```powershell
 geniex pull ai-hub-models/Qwen3-4B-Instruct-2507
 geniex serve
 ```
@@ -42,7 +52,7 @@ Then execute the CAIOS EdgeCare request against the local server and capture:
 - Local provider / model name
 - Successful response
 - Any visible latency / throughput / runtime information
-- Screenshot showing the Qualcomm Device Cloud session and the successful workload
+- Screenshot showing the Qualcomm Device Cloud session and successful workload
 
 ## Vendor reference only — not our execution
 
