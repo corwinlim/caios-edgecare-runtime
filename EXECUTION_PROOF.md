@@ -9,58 +9,44 @@ A real Qualcomm Device Cloud Interactive Session has been created and connected 
 - Project / session name: `CAIOS EdgeCare`
 - QDC interactive session / report ID: `822588`
 - Report URL: `https://qdc.qualcomm.com/reports/job/interactive/822588`
-- Target platform: `Snapdragon X2 Elite`
-- Device class: `Compute Reference Design`
+- Target platform shown by QDC: `Snapdragon X2 Elite`
+- Device class shown by QDC: `Compute Reference Design`
 - Platform identifier shown by QDC: `SC8480X`
-- Operating system: `Windows 11`
+- Operating system shown by QDC: `Windows 11`
 - QDC state captured after connection: `Running`
 - QDC device streaming: connected and interactive desktop visible
 - Submitted: `09/15/26 03:35:26 AM` (as displayed by QDC)
 - Started: `09/15/26 03:38:05 AM` (as displayed by QDC)
 
-This proves that CAIOS successfully acquired, started, and connected to a real Qualcomm-hosted Snapdragon X2 Elite device session.
+This proves that CAIOS successfully acquired, started, and connected to a real Qualcomm-hosted Snapdragon X2 Elite session.
 
-## GenieX binary verification
+## Important provenance correction
 
-The official GenieX CLI was installed to:
-
-```text
-C:\Users\Asus\AppData\Local\GenieX CLI\geniex.exe
-```
-
-Verification captured from PowerShell:
-
-- File size: `33,963,008` bytes
-- Windows PE header begins with `4D 5A` (`MZ`)
-- PE machine type: `0xAA64` = **ARM64**
-
-This rules out an x64/x86 binary mismatch. Despite the ARM64 PE architecture, attempting to run the binary on the current QDC Windows image returns:
+A later PowerShell diagnostic returned:
 
 ```text
-The specified executable is not a valid application for this OS platform.
+SystemType: x64-based PC
+CPU: 13th Gen Intel(R) Core(TM) i5-1335U
 ```
 
-At this point the remaining issue is most likely either the remote Windows OS architecture / image compatibility, or a GenieX build compatibility issue with this QDC Windows image.
+Those values identify the user's local ASUS PC, not the Qualcomm Device Cloud target shown in the browser stream. Therefore the earlier local `geniex.exe` launch errors and PE-architecture diagnostics **must not be presented as execution evidence from the Snapdragon X2 Elite session**.
 
-## Next diagnostic gate
+The repository intentionally excludes those local-machine results from the Qualcomm inference claim.
 
-Run these exact commands in PowerShell:
+## Workload execution — still pending
+
+To upgrade this proof from **real Qualcomm hardware-session proof** to **real on-device workload execution proof**, the next command must be run inside the streamed Qualcomm Device Cloud Windows desktop itself, not in a local PowerShell window.
+
+Inside the QDC streamed desktop, open PowerShell from the remote Start menu and capture:
 
 ```powershell
+hostname
 $env:PROCESSOR_ARCHITECTURE
-[System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+Get-CimInstance Win32_ComputerSystem | Select-Object SystemType
+Get-CimInstance Win32_Processor | Select-Object Name,Architecture,AddressWidth
 ```
 
-Expected for native Windows ARM64:
-
-```text
-ARM64
-Arm64
-```
-
-If the OS reports `AMD64` / `X64`, then the ARM64 GenieX binary cannot run even though the underlying Qualcomm hardware is Snapdragon X2 Elite.
-
-If the OS reports `Arm64`, then this becomes a GenieX/QDC-image compatibility issue rather than a CPU architecture mismatch.
+Only after the remote shell is verified should GenieX or another supported Qualcomm inference runtime be installed/run there.
 
 ## Vendor reference only — not our execution
 
